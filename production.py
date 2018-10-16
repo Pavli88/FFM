@@ -188,6 +188,14 @@ def value_area_calc(rawdata):
 
     return val['PRICE'],vah['PRICE'],table['PRICE'],table['VOLUME'],locator
 
+#Verbosity
+def verbose(text,value):
+    if args.verbosity == "Yes":
+        print("[" + time.strftime("%H:%M:%S") + "] " + str(text))
+        print(value)
+    else:
+        pass
+
 #ARGUMENTS
 
 parser = argparse.ArgumentParser()
@@ -211,6 +219,7 @@ parser.add_argument("--env", help="Environment switch. Default:prod; Switches: t
 parser.add_argument("--force_save_drel", help="Forces to resave daily_rel data. Switch: Yes")
 parser.add_argument("--db_user_name", help="User name for database login. Switch: username")
 parser.add_argument("--db_password", help="Password for database login. Switch: password")
+parser.add_argument("--verbosity", help="Print all relevant information. Default: empty Switch: Yes")
 args = parser.parse_args()
 
 # GLOBAL VARIABLES
@@ -456,6 +465,7 @@ else:
                     re = -0.001
                     tiz = 1000
 
+                verbose("Decimal",s)
 
                 # Cecking missing data and correcting it
                 filename = import_quotes
@@ -475,6 +485,9 @@ else:
                 filename = filename.dropna(how='any')
                 newindex = np.arange(0, len(np.asarray(filename[0])), 1)
                 filename = filename.set_index(newindex)
+
+                verbose("Formated dataframe",filename)
+
                 print("[" + time.strftime("%H:%M:%S") + "] " + 'Formating dataframe -> Completed')
 
                 ppmax = (np.asanyarray(filename[0]).size) - 1
@@ -489,92 +502,95 @@ else:
                 # Intraday total volume
                 vol = filename.loc[:, 4]
                 sumvol = vol.values.sum()
-                print("[" + time.strftime("%H:%M:%S") + "] " + 'Intraday Volume: ' + str(sumvol))
+                verbose("Intraday Volume",sumvol)
 
 
                 # Intraday max and min
                 allmax = round(novol.values.max(), s)
                 allmin = round(novol.values.min(), s)
+                verbose("Intraday Max",allmax)
+                verbose("Intraday Min", allmin)
 
-                print("[" + time.strftime("%H:%M:%S") + "] " + 'Intraday Max: ' + str(allmax))
-                print("[" + time.strftime("%H:%M:%S") + "] " + 'Intraday Min: ' + str(allmin))
 
+                #Creating 30 min dataframes
                 if ppmax > 30:
                     df2 = filename.loc[0:30, 0:3]
                     rmax1 = filename.loc[0:30, 1].values.max()
                     rmin1 = filename.loc[0:30, 2].values.min()
-                    print('Dataframe1 ', 'Max:', rmax1, '', 'Min: ', rmin1)
+
+
                     if ppmax > 60:
                         df3 = filename.loc[31:60, 0:3]
                         rmax2 = filename.loc[31:60, 1].values.max()
                         rmin2 = filename.loc[31:60, 2].values.min()
-                        print('Dataframe2 ', 'Max:', rmax2, '', 'Min: ', rmin2)
+
+
                         if ppmax > 90:
                             df4 = filename.loc[61:90, 0:3]
                             rmax3 = filename.loc[61:90, 1].values.max()
                             rmin3 = filename.loc[61:90, 2].values.min()
-                            print('Dataframe3 ', 'Max:', rmax3, '', 'Min: ', rmin3)
+
+
                             if ppmax > 120:
                                 df5 = filename.loc[91:120, 0:3]
                                 rmax4 = filename.loc[91:120, 1].values.max()
                                 rmin4 = filename.loc[91:120, 2].values.min()
-                                print('Dataframe4 ', 'Max:', rmax4, '', 'Min: ', rmin4)
+
+
                                 if ppmax > 150:
                                     df6 = filename.loc[121:150, 0:3]
                                     rmax5 = filename.loc[121:150, 1].values.max()
                                     rmin5 = filename.loc[121:150, 2].values.min()
-                                    print('Dataframe5 ', 'Max:', rmax5, '', 'Min: ', rmin5)
+
 
                                     if ppmax > 180:
                                         df7 = filename.loc[151:180, 0:3]
                                         rmax6 = filename.loc[151:180, 1].values.max()
                                         rmin6 = filename.loc[151:180, 2].values.min()
-                                        print('Dataframe6 ', 'Max:', rmax6, '', 'Min: ', rmin6)
+
 
                                         if ppmax > 210:
                                             df8 = filename.loc[181:210, 0:3]
                                             rmax7 = filename.loc[181:210, 1].values.max()
                                             rmin7 = filename.loc[181:210, 2].values.min()
-                                            print('Dataframe7 ', 'Max:', rmax7, '', 'Min: ', rmin7)
+
 
                                             if ppmax > 240:
                                                 df9 = filename.loc[211:240, 0:3]
                                                 rmax8 = filename.loc[211:240, 1].values.max()
                                                 rmin8 = filename.loc[211:240, 2].values.min()
-                                                print('Dataframe8 ', 'Max:', rmax8, '', 'Min: ', rmin8)
+
 
                                                 if ppmax > 270:
                                                     df10 = filename.loc[241:270, 0:3]
                                                     rmax9 = filename.loc[241:270, 1].values.max()
                                                     rmin9 = filename.loc[241:270, 2].values.min()
-                                                    print('Dataframe9 ', 'Max:', rmax9, '', 'Min: ', rmin9)
+
 
                                                     if ppmax > 300:
                                                         df11 = filename.loc[271:300, 0:3]
                                                         rmax10 = filename.loc[271:300, 1].values.max()
                                                         rmin10 = filename.loc[271:300, 2].values.min()
-                                                        print('Dataframe10 ', 'Max:', rmax10, '', 'Min: ', rmin10)
+
 
                                                         if ppmax > 330:
                                                             df12 = filename.loc[301:330, 0:3]
                                                             rmax11 = filename.loc[301:330, 1].values.max()
                                                             rmin11 = filename.loc[301:330, 2].values.min()
-                                                            print('Dataframe11 ', 'Max:', rmax11, '', 'Min: ', rmin11)
+
 
                                                             if ppmax > 360:
                                                                 df13 = filename.loc[331:360, 0:3]
                                                                 rmax12 = filename.loc[331:360, 1].values.max()
                                                                 rmin12 = filename.loc[331:360, 2].values.min()
-                                                                print('Dataframe12 ', 'Max:', rmax12, '', 'Min: ',
-                                                                      rmin12)
+
 
                                                                 if ppmax >= 361:
                                                                     df14 = filename.loc[361:ppmax, 0:3]
                                                                     closeprice = df14.loc[ppmax, 3]
                                                                     rmax13 = filename.loc[361:ppmax, 1].values.max()
                                                                     rmin13 = filename.loc[361:ppmax, 2].values.min()
-                                                                    print('Dataframe13 ', 'Max:', rmax13, '', 'Min: ',
-                                                                          rmin13)
+
 
                                                             elif ppmax <= 360:
                                                                 df13 = filename.loc[331:ppmax, 0:3]
@@ -583,8 +599,7 @@ else:
                                                                 rmin12 = filename.loc[331:ppmax, 2].values.min()
                                                                 rmax13 = 0
                                                                 rmin13 = 0
-                                                                print('Dataframe12 ', 'Max:', rmax12, '', 'Min: ',
-                                                                      rmin12)
+
 
                                                         elif ppmax <= 330:
                                                             df12 = filename.loc[301:ppmax, 0:3]
@@ -595,7 +610,6 @@ else:
                                                             rmin12 = 0
                                                             rmax13 = 0
                                                             rmin13 = 0
-                                                            print('Dataframe11 ', 'Max:', rmax11, '', 'Min: ', rmin11)
 
 
                                                     elif ppmax <= 300:
@@ -609,7 +623,7 @@ else:
                                                         rmin12 = 0
                                                         rmax13 = 0
                                                         rmin13 = 0
-                                                        print('Dataframe10 ', 'Max:', rmax10, '', 'Min: ', rmin10)
+
 
                                                 elif ppmax <= 270:
                                                     df10 = filename.loc[241:ppmax, 0:3]
@@ -624,7 +638,7 @@ else:
                                                     rmin12 = 0
                                                     rmax13 = 0
                                                     rmin13 = 0
-                                                    print('Dataframe9 ', 'Max:', rmax9, '', 'Min: ', rmin9)
+
 
                                             elif ppmax <= 240:
                                                 df9 = filename.loc[211:ppmax, 0:3]
@@ -641,7 +655,7 @@ else:
                                                 rmin12 = 0
                                                 rmax13 = 0
                                                 rmin13 = 0
-                                                print('Dataframe8 ', 'Max:', rmax8, '', 'Min: ', rmin8)
+
 
                                         elif ppmax <= 210:
                                             df8 = filename.loc[181:ppmax, 0:3]
@@ -660,7 +674,7 @@ else:
                                             rmin12 = 0
                                             rmax13 = 0
                                             rmin13 = 0
-                                            print('Dataframe7 ', 'Max:', rmax7, '', 'Min: ', rmin7)
+
 
                                     elif ppmax <= 180:
                                         df7 = filename.loc[151:ppmax, 0:3]
@@ -681,7 +695,7 @@ else:
                                         rmin12 = 0
                                         rmax13 = 0
                                         rmin13 = 0
-                                        print('Dataframe6 ', 'Max:', rmax6, '', 'Min: ', rmin6)
+
 
                                 elif ppmax <= 150:
                                     df6 = filename.loc[121:ppmax, 0:3]
@@ -704,53 +718,53 @@ else:
                                     rmin12 = 0
                                     rmax13 = 0
                                     rmin13 = 0
-                                    print('Dataframe5 ', 'Max:', rmax5, '', 'Min: ', rmin5)
+
 
                             elif ppmax <= 120:
                                 df5 = filename.loc[91:ppmax, 0:3]
                                 closeprice = df5.loc[ppmax, 3]
                                 rmax4 = filename.loc[91:ppmax, 1].values.max()
                                 rmin4 = filename.loc[91:ppmax, 2].values.min()
-                                print('Dataframe4 ', 'Max:', rmax4, '', 'Min: ', rmin4)
+
 
                         elif ppmax <= 90:
                             df4 = filename.loc[61:ppmax, 0:3]
                             closeprice = df4.loc[ppmax, 3]
                             rmax3 = filename.loc[61:ppmax, 1].values.max()
                             rmin3 = filename.loc[61:ppmax, 2].values.min()
-                            print('Dataframe3 ', 'Max:', rmax3, '', 'Min: ', rmin3)
+
 
                     elif ppmax <= 60:
                         df3 = filename.loc[31:ppmax, 0:3]
                         closeprice = df3.loc[ppmax, 3]
                         rmax2 = filename.loc[31:ppmax, 1].values.max()
                         rmin2 = filename.loc[31:ppmax, 2].values.min()
-                        print('Dataframe2 ', 'Max:', rmax2, '', 'Min: ', rmin2)
+
 
                 elif ppmax <= 30:
                     df2 = filename.loc[0:ppmax, 0:3]
                     closeprice = df2.loc[ppmax, 3]
                     rmax1 = filename.loc[0:ppmax, 1].values.max()
                     rmin1 = filename.loc[0:ppmax, 2].values.min()
-                    print('Dataframe1 ', 'Max:', rmax1, '', 'Min: ', rmin1)
+
+
 
                 openprice = df2.loc[0, 0]
                 max1 = df2.values.max()
-
-                print("[" + time.strftime("%H:%M:%S") + "] " + 'Open price: ', openprice)
-                print("[" + time.strftime("%H:%M:%S") + "] " + 'Close price: ', closeprice)
+                verbose("Open price",openprice)
+                verbose("Close price",closeprice)
 
 
                 # Initial balance min
                 ini = filename.loc[0:60, 0:3]
                 initalmin = ini.values.min()
-                print("[" + time.strftime("%H:%M:%S") + "] " + 'Initial Balance Min: ', initalmin)
+                verbose("Initial Balance Min",initalmin)
 
 
                 # Initial balance max
                 ini2 = filename.loc[0:60, 0:3]
                 initalmax = ini2.values.max()
-                print("[" + time.strftime("%H:%M:%S") + "] " + 'Initial Balance Max: ', initalmax)
+                verbose("Initial Balance Max",initalmax)
 
 
                 # Selling Range Extension
@@ -758,7 +772,7 @@ else:
                     sre = -1
                 else:
                     sre = 0
-                print("[" + time.strftime("%H:%M:%S") + "] " + 'Selling Range Extension: ', sre)
+                verbose("Selling Range Extension",sre)
 
 
                 # Buying Range Extension
@@ -766,7 +780,7 @@ else:
                     bre = 1
                 else:
                     bre = 0
-                print("[" + time.strftime("%H:%M:%S") + "] " + 'Buying Range Extension: ', bre)
+                verbose("Buying Range Extension",bre)
 
 
                 # Range Extension Succes
@@ -776,7 +790,7 @@ else:
                     res = 0
                 else:
                     res = 1
-                print("[" + time.strftime("%H:%M:%S") + "] " + 'Range Extension Succes: ', res)
+                verbose("Range extension succes",res)
 
                 maxar = pd.Series(
                     [rmax1, rmax2, rmax3, rmax4, rmax5, rmax6, rmax7, rmax8, rmax9, rmax10, rmax11, rmax12, rmax13])
@@ -817,6 +831,7 @@ else:
                 rf12 = rfactormax(rmax13, rmax12)
 
                 rmatot = rf1 + rf2 + rf3 + rf4 + rf5 + rf6 + rf7 + rf8 + rf9 + rf10 + rf11 + rf12
+                verbose("Rotaion factor upper level",rmatot)
 
                 def rfactormin(rmini, rminj):
                     if rmini > rminj:
@@ -840,13 +855,13 @@ else:
                 rfm12 = rfactormin(rmin13, rmin12)
 
                 rmitot = rfm1 + rfm2 + rfm3 + rfm4 + rfm5 + rfm6 + rfm7 + rfm8 + rfm9 + rfm10 + rfm11 + rfm12
+                verbose("Rotation factor down level",rmitot)
 
                 rf = rmatot + rmitot
-                print("[" + time.strftime("%H:%M:%S") + "] " + 'Roration Factor: ', rf)
+                verbose("Rotation factor",rf)
 
 
-                # Market Profile----------------------------------------------------------------------------------
-
+                # Market Profile
                 pricerange = pd.Series(np.arange(allmax, allmin, re))
 
                 pricelen = len(pricerange)
@@ -859,7 +874,6 @@ else:
 
                 dfpricerange = pd.DataFrame({'A': pricesav,
                                              })
-                print("[" + time.strftime("%H:%M:%S") + "] " + 'Price Range Lenght: ', pricelen)
 
                 def period(rmaxi, x):
                     if rmaxi == 0:
@@ -935,6 +949,7 @@ else:
                                          'L': wh12,
                                          'M': wh13,
                                          })
+                verbose("Table",perioddf)
 
                 summarketdf = perioddf.sum(1)
 
@@ -942,15 +957,13 @@ else:
                 # Market Profile cordinates
                 mp = pd.DataFrame({'A': pricesav,
                                    'B': summarketdf, })
-
+                verbose("One line profile data",mp)
 
                 # Point of controll
                 pocmaxpos = mp['B'].values.max()
                 pocmax = mp[mp.B == pocmaxpos]
                 poc = round(pocmax['A'].mean(), s)
-
-                print("[" + time.strftime("%H:%M:%S") + "] " + 'Point of Controll: ', poc)
-
+                verbose("POC",poc)
 
                 # VALUE AREA
                 try:
@@ -1021,9 +1034,8 @@ else:
                             val = pocd['A'].head(nm).min()
                             abo = pocd.loc[bot + dk, 'B']
                             kk = kk + 1
-
-                print("[" + time.strftime("%H:%M:%S") + "] " + 'Value Area High: ', vah)
-                print("[" + time.strftime("%H:%M:%S") + "] " + 'Value Area Low: ', val)
+                verbose("VAL",val)
+                verbose("VAH",vah)
 
 
                 # TAIL
@@ -1047,18 +1059,14 @@ else:
                         tail = 1
                 else:
                     tail = 0
-
-                print("[" + time.strftime("%H:%M:%S") + "] " + 'Tail: ', tail)
+                verbose("Tail",tail)
 
 
                 # Netural Day
-
                 if (sre == -1 and bre == 1):
                     natd = poc
                 else:
                     natd = 0
-
-                print("[" + time.strftime("%H:%M:%S") + "] " + 'Netural Day: ', natd)
 
 
                 # Volume calculations
@@ -1127,6 +1135,7 @@ else:
 
                     SQL(data_base,args.db_user_name,args.db_password).insert_data("update process_monitor set daily_gen = 'Yes' where ticker = '" + str(security) + "' and date = '" + str(query_date) + "'")
 
+
                 #-----------------------------------------------
                 # START OF RELATIVE DATA POINT CALCULATIONS
                 # -----------------------------------------------
@@ -1146,8 +1155,8 @@ else:
 
                     #Default value
                     filename = SQL(data_base,args.db_user_name,args.db_password).select_data("select * from (select * from dev.daily_gen where ticker = '"+str(security)+"' order by date desc limit 2) sub order by date asc")
+                verbose("Imported latest two dataframe record",filename)
 
-                print(filename)
                 # Initiative Selling activity
                 try:
 
@@ -1158,8 +1167,7 @@ else:
                         ins = -1
                     else:
                         ins = 0
-
-                    print("[" + time.strftime("%H:%M:%S") + "] " + "Initiative selling: "+str(ins))
+                    verbose("Initiative selling",ins)
 
                 except:
                     ins = 0
@@ -1172,8 +1180,7 @@ else:
                         inb = 1
                     else:
                         inb = 0
-
-                    print("[" + time.strftime("%H:%M:%S") + "] " + "Initiative buying: " + str(inb))
+                    verbose("Initiative buying", inb)
 
                 except:
                     inb = 0
@@ -1188,8 +1195,7 @@ else:
                         pz1 = 0
                     else:
                         pz1 = 1
-
-                    print("[" + time.strftime("%H:%M:%S") + "] " + "Relative close to today's value: "+str(pz1))
+                    verbose("Close relative to toda's value", pz1)
 
                 except:
                     pz1 = 0
@@ -1204,8 +1210,7 @@ else:
                         pz2 = 0
                     else:
                         pz2 = 1
-
-                    print("[" + time.strftime("%H:%M:%S") + "] " + "Relative close to previous's value: "+str(pz2))
+                    verbose("Close relative to previous day's value", pz2)
 
                 except:
                     pz2 = 0
@@ -1218,8 +1223,7 @@ else:
                         trday = 1
                     else:
                         trday = 0
-
-                    print("[" + time.strftime("%H:%M:%S") + "] " + "Trend day: "+str(trday))
+                    verbose("Trend day", trday)
 
                 except:
                     trday = 0
@@ -1243,8 +1247,7 @@ else:
                         vap = 0
                     else:
                         vap = 0
-
-                    print("[" + time.strftime("%H:%M:%S") + "] " + "Value area placement: "+str(vap))
+                    verbose("Value area placement", vap)
 
                 except:
                     vap = 0
@@ -1314,8 +1317,7 @@ else:
                     vav13 = respvol(rvol13, rfs13, volper13)
 
                     respb = vav2 + vav3 + vav4 + vav5 + vav6 + vav7 + vav8 + vav9 + vav10 + vav11 + vav12 + vav13
-
-                    print("[" + time.strftime("%H:%M:%S") + "] " + "Responsive buying: "+str(respb))
+                    verbose("Responsive buying", respb)
 
                 except:
                     respb = 0
@@ -1346,8 +1348,7 @@ else:
                     vak13 = inselvol(rvol13, rfs13, volper13)
 
                     invs = vak2 + vak3 + vak4 + vak5 + vak6 + vak7 + vak8 + vak9 + vak10 + vak11 + vak12 + vak13
-
-                    print("[" + time.strftime("%H:%M:%S") + "] " + "Initiative selling: "+str(invs))
+                    verbose("Initiative selling", invs)
 
                 except:
                     invs = 0
@@ -1375,7 +1376,6 @@ else:
                     kvol13 = respselvol(rmax13)
 
                 except:
-
                     print("[" + time.strftime("%H:%M:%S") + "] " + "Responsive selling calculation is not possible")
 
 
@@ -1403,8 +1403,7 @@ else:
                     kav13 = kavvol(kvol13, rfs13, volper13)
 
                     kavsum = kav2 + kav3 + kav4 + kav5 + kav6 + kav7 + kav8 + kav9 + kav10 + kav11 + kav12 + kav13
-
-                    print("[" + time.strftime("%H:%M:%S") + "] " + "Responsive selling: " + str(kavsum))
+                    verbose("Responsive selling", kavsum)
 
                 except:
                     kavsum = 0
@@ -1435,8 +1434,7 @@ else:
                     mav13 = mavvol(kvol13, rfs13, volper13)
 
                     mavsum = mav2 + mav3 + mav4 + mav5 + mav6 + mav7 + mav8 + mav9 + mav10 + mav11 + mav12 + mav13
-
-                    print("[" + time.strftime("%H:%M:%S") + "] " + "Initial buying: "+str(mavsum))
+                    verbose("Initial buying", mavsum)
 
                 except:
                     mavsum = 0
@@ -1461,6 +1459,12 @@ else:
                     isvol = invs * sumvol
                     ibvol = mavsum * sumvol
                     rsvol = kavsum * sumvol
+                    verbose("Buying ratio", bratio)
+                    verbose("Selling ratio", sratio)
+                    verbose("Responsive buying volume",rbvol)
+                    verbose("Initiative selling volume",isvol)
+                    verbose("Initiative buying volume",ibvol)
+                    verbose("Responsive selling volume", rsvol)
 
                 except:
                     bratio = 0
@@ -1477,8 +1481,7 @@ else:
                     dret1 = filename['close']
                     dret2 = np.asarray(dret1)
                     dret = round(((dret2[1] - dret2[0]) / dret2[0]) * 100, 2)
-
-                    print("[" + time.strftime("%H:%M:%S") + "] " + 'Daily Return: ' + str(dret) + '%')
+                    verbose("Daily return", dret)
 
                 except:
                     dret = 0.0
@@ -1550,7 +1553,6 @@ else:
                     print("[" + time.strftime("%H:%M:%S") + "] " + "WRITING DAILY_REL DATA TO DATABASE")
 
                     SQL(data_base,args.db_user_name,args.db_password).insert_data("update process_monitor set daily_rel = 'Yes' where ticker = '" + str(security) + "' and date = '" + str(query_date) + "'")
-
 
                 '''print("[" + time.strftime("%H:%M:%S") + "] " + '<<< WRITING ROUND 2 DATA TO EXCEL >>>')
                 print('')
@@ -1722,3 +1724,5 @@ else:
         print("")
         print('END OF DAILYCALC')
         print("")
+
+
