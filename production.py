@@ -199,28 +199,38 @@ def verbose(text,value):
 #ARGUMENTS
 
 parser = argparse.ArgumentParser()
+
+# General data points
 parser.add_argument("--rundate", help="Specifies on which date to run production. Switch: specific")
 parser.add_argument("--ticker", help="Defining the list of ticker or single ticker to produce data. Switches: ALL - All tickers; Specific ticker code",)
+
+# Subprocess switches
 parser.add_argument("--download", help="Download latest intraday data. Switch: Yes")
 parser.add_argument("--dailycalc", help="Daily data production. Switch: Yes")
-parser.add_argument("--updatedaily", help="Updates the latest daily data row. Switch: Yes")
 parser.add_argument("--unitcalc", help="Calculates unit and market level data. Switch: Yes")
 parser.add_argument("--confcalc", help="Calculates confidence data. Switch: Yes")
 parser.add_argument("--patterncalc", help="Calculates pattern data. Switch: Yes")
 parser.add_argument("--updatepattern", help="Updates latest pattern data. Switch: Yes")
 parser.add_argument("--chartmail", help="Calculates chart mails. Switch: Yes")
 parser.add_argument("--stpattern", help="Checks securities with strong pattern. Switch: Yes")
-parser.add_argument("--forcerun", help="Forces script to run if market is open. Switch: Yes")
 parser.add_argument("--tradereturn", help="Calculates trade return on positions. Switch: Yes")
 parser.add_argument("--portret", help="Calculates portfolio returns. Switch: Yes")
 parser.add_argument("--backup", help="Creates database backup file. Switch: Yes")
 parser.add_argument("--datechecker", help="Checks latest day on daily data. Switch: Yes")
-parser.add_argument("--env", help="Environment switch. Default:prod; Switches: test; dev ")
-parser.add_argument("--force_save_drel", help="Forces to resave daily_rel data. Switch: Yes")
+
+# Database related switches
 parser.add_argument("--db_user_name", help="User name for database login. Switch: username")
 parser.add_argument("--db_password", help="Password for database login. Switch: password")
+parser.add_argument("--env", help="Environment switch. Default:prod; Switches: test; dev ")
+
+# Print options
 parser.add_argument("--verbosity", help="Print all relevant information. Default: empty Switch: Yes")
+
+# Force run and save switches
 parser.add_argument('--force_save_daily_index',help="Forces to re-save daily index data. Switch Yes")
+parser.add_argument('--force_save_dgen',help="Forces to re-save daily general data. Switch Yes")
+parser.add_argument("--force_save_drel", help="Forces to resave daily_rel data. Switch: Yes")
+parser.add_argument("--forcerun", help="Forces script to run if market is open. Switch: Yes")
 
 args = parser.parse_args()
 
@@ -1107,16 +1117,46 @@ else:
 
                 if data_check["daily_gen"].values == "Yes":
 
-                    print("[" + time.strftime("%H:%M:%S") + "]" + " DAILY_GEN DATA EXISTS IN DATA BASE FOR -> " + str(security) + " DATE: " + str(query_date))
+                    # Forces dailycalc to save daily_rel data to database
+                    if args.force_save_dgen == "Yes":
 
-                    pass
+                        # Writing general daily data to database
+                        print("[" + time.strftime("%H:%M:%S") + "] " + "WRITING DAILY_GEN DATA TO DATABASE")
+
+                        SQL(data_base, args.db_user_name, args.db_password).insert_data(
+                            "insert into daily_gen (date,ticker,open,min,max,close,inmin,inmax,bre,sre,res,rf,vol,poc,vah,val,ntfd,tpomax,tail) "
+                            "values ('" + str(portdate) +
+                            "','" + str(security) +
+                            "','" + str(openprice) +
+                            "','" + str(allmin) +
+                            "','" + str(allmax) +
+                            "','" + str(closeprice) +
+                            "','" + str(initalmin) +
+                            "','" + str(initalmax) +
+                            "','" + str(bre) +
+                            "','" + str(sre) +
+                            "','" + str(res) +
+                            "','" + str(rf) +
+                            "','" + str(sumvol) +
+                            "','" + str(poc) +
+                            "','" + str(vah) +
+                            "','" + str(val) +
+                            "','" + str(natd) +
+                            "','" + str(max1) +
+                            "','" + str(tail) + "')")
+
+                    else:
+
+                        print("[" + time.strftime("%H:%M:%S") + "]" + " DAILY_GEN DATA EXISTS IN DATA BASE FOR -> " + str(security) + " DATE: " + str(query_date))
+
+                        pass
 
                 else:
 
                     # Writing general daily data to database
                     print("[" + time.strftime("%H:%M:%S") + "] " + "WRITING DAILY_GEN DATA TO DATABASE")
                     SQL(data_base,args.db_user_name,args.db_password).insert_data(
-                        "insert into daily_gen (date,ticker,open,min,max,close,inmin,inmax,bre,sre,res,rf,vol,poc,vah,val,ntfd,tpomax) "
+                        "insert into daily_gen (date,ticker,open,min,max,close,inmin,inmax,bre,sre,res,rf,vol,poc,vah,val,ntfd,tpomax,tail) "
                         "values ('" + str(portdate) +
                         "','" + str(security) +
                         "','" + str(openprice) +
@@ -1134,7 +1174,8 @@ else:
                         "','" + str(vah) +
                         "','" + str(val) +
                         "','" + str(natd) +
-                        "','" + str(max1) + "')")
+                        "','" + str(max1) +
+                        "','" + str(tail) +"')")
 
                     SQL(data_base,args.db_user_name,args.db_password).insert_data("update process_monitor set daily_gen = 'Yes' where ticker = '" + str(security) + "' and date = '" + str(query_date) + "'")
 
@@ -1650,7 +1691,6 @@ else:
                     print("[" + time.strftime("%H:%M:%S") + "] " + 'Calculating --> Balanced Day')
 
                     # Balanced day
-
                     if pocd10 < 30:
                         bald = poc
                         edge = rowe
@@ -1659,16 +1699,16 @@ else:
                         edge = 0
 
                     # Attempted direction
-
                     atdir = bre + sre + res + rf + tail + ins + inb + pz1 + pz2 + vap
 
                     if atdir > 0:
                         atdircode = 1
                     else:
                         atdircode = 2
+                        
                     print("[" + time.strftime("%H:%M:%S") + "] " + 'Attempted Direction: ', atdircode)
+                    
                     # VAP code
-
                     if vap == 2:
                         vapcode = 6
                     elif vap == -2:
@@ -1679,33 +1719,10 @@ else:
                         vapcode = 9
                     else:
                         vapcode = 10
+                        
                     print("[" + time.strftime("%H:%M:%S") + "] " + 'Value Area Placement code: ', vapcode)
+                    
                     shortvol = sumvol - (rbvol + isvol + ibvol + rsvol)
-
-                    print("[" + time.strftime("%H:%M:%S") + "] " + 'Writing to excel round 3 calculated data')
-
-                    wb = load_workbook(datapathexcel)
-                    ws1 = wb.active
-                    ws2 = wb.get_sheet_by_name('Unit')
-
-                    dat27 = ws1.cell(row=rowe, column=28, value=pocd10)
-                    dat28 = ws1.cell(row=rowe, column=29, value=bald)
-                    dat29 = ws1.cell(row=rowe, column=30, value=tail)
-                    dat30 = ws1.cell(row=rowe, column=31, value=atdir)
-                    dat31 = ws1.cell(row=rowe, column=32, value=atdircode)
-                    dat32 = ws1.cell(row=rowe, column=33, value=edge)
-                    dat33 = ws1.cell(row=rowe, column=34, value=bratio)
-                    dat34 = ws1.cell(row=rowe, column=35, value=sratio)
-                    dat35 = ws1.cell(row=rowe, column=36, value=rbvol)
-                    dat36 = ws1.cell(row=rowe, column=37, value=isvol)
-                    dat37 = ws1.cell(row=rowe, column=38, value=ibvol)
-                    dat38 = ws1.cell(row=rowe, column=39, value=rsvol)
-                    dat39 = ws1.cell(row=rowe, column=40, value=shortvol)
-                    dat40 = ws1.cell(row=rowe, column=41, value=vapcode)
-
-                    wb.save(datapathexcel)
-                    wb.close()
-                    print("[" + time.strftime("%H:%M:%S") + "] " + 'Level 3 data was written to excel')
 
                 except:
                     print("[" + time.strftime("%H:%M:%S") + "] " + "Level 3 data calculation is not possible")
@@ -1739,17 +1756,8 @@ else:
                     atdirtxt2 = atdirtxt1[-1]
 
                     print("[" + time.strftime("%H:%M:%S") + "] " + 'Attempted Direction Performance: ', atdirtxt2)
-
-                    wb = load_workbook(datapathexcel)
-                    ws1 = wb.active
-
-                    dat41 = ws1.cell(row=rowe, column=42, value=relativevol)
-                    dat42 = ws1.cell(row=rowe, column=43, value=atdirtxt2)
-
-                    print("[" + time.strftime("%H:%M:%S") + "] " + 'Relative Volume: ', relativevol)
-
-                    wb.save(datapathexcel)
-                    wb.close()'''
+                    
+                    '''
 
             except:
                 print('')
