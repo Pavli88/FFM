@@ -220,6 +220,8 @@ parser.add_argument("--force_save_drel", help="Forces to resave daily_rel data. 
 parser.add_argument("--db_user_name", help="User name for database login. Switch: username")
 parser.add_argument("--db_password", help="Password for database login. Switch: password")
 parser.add_argument("--verbosity", help="Print all relevant information. Default: empty Switch: Yes")
+parser.add_argument('--force_save_daily_index',help="Forces to re-save daily index data. Switch Yes")
+
 args = parser.parse_args()
 
 # GLOBAL VARIABLES
@@ -498,6 +500,7 @@ else:
                 meanall = df.mean(1)
                 round2 = meanall.round(s)
 
+                print("[" + time.strftime("%H:%M:%S") + "] " + "DAILY_GEN CALCULATION")
 
                 # Intraday total volume
                 vol = filename.loc[:, 4]
@@ -1554,47 +1557,25 @@ else:
 
                     SQL(data_base,args.db_user_name,args.db_password).insert_data("update process_monitor set daily_rel = 'Yes' where ticker = '" + str(security) + "' and date = '" + str(query_date) + "'")
 
-                '''print("[" + time.strftime("%H:%M:%S") + "] " + '<<< WRITING ROUND 2 DATA TO EXCEL >>>')
-                print('')
-                # Writing data to database
+                # -------------------------------------------
+                # BALANCE INDEX CALCULATION ON DAILY POC DATA
+                # -------------------------------------------
 
-                wb = load_workbook(datapathexcel)
-                ws1 = wb.active
-
-                # rowe = int(ws1['A1'].value)
                 try:
-                    dat17 = ws1.cell(row=rowe, column=18, value=ins)
-                    dat18 = ws1.cell(row=rowe, column=19, value=inb)
-                    dat19 = ws1.cell(row=rowe, column=20, value=pz1)
-                    dat20 = ws1.cell(row=rowe, column=21, value=pz2)
-                    dat21 = ws1.cell(row=rowe, column=22, value=trday)
-                    dat22 = ws1.cell(row=rowe, column=23, value=respb)
-                    dat23 = ws1.cell(row=rowe, column=24, value=invs)
-                    dat24 = ws1.cell(row=rowe, column=25, value=kavsum)
-                    dat25 = ws1.cell(row=rowe, column=26, value=mavsum)
-                    dat26 = ws1.cell(row=rowe, column=27, value=vap)
-                    dat44 = ws1.cell(row=rowe, column=44, value=dret)
-                except:
-                    print("[" + time.strftime("%H:%M:%S") + "] " + "Writing level 2 data is not possible")
-                wb.save(datapathexcel)
-                wb.close()
 
-                print('*****Round 3 Data Calculation*****')
-                print('')
+                    print("[" + time.strftime("%H:%M:%S") + "] " + "DAILY INDEX CALCULATION")
 
-                # Round3 Data Calculation.........................................................................................
+                    # Importing the last three days' poc data into a dataframe
+                    filename = SQL(data_base, args.db_user_name, args.db_password).select_data("select date,poc from (select * from dev.daily_gen where ticker = '" + str(security) + "' and date <= '" + str(query_date) + "' order by date desc limit 3) sub order by date asc")
+                    verbose("Imported latest tree days' POC data", filename)
 
-                # EE Index
-                try:
-                    filename = pd.read_excel(datapathexcel).tail(3)
-
-                    poc11 = np.asanyarray(filename['POC'])
+                    # Balance index value calculation
+                    poc11 = np.asanyarray(filename['poc'])
                     poc1 = poc11[0]
-                    poc22 = np.asanyarray(filename['POC'])
+                    poc22 = np.asanyarray(filename['poc'])
                     poc2 = poc22[1]
-                    poc33 = np.asanyarray(filename['POC'])
+                    poc33 = np.asanyarray(filename['poc'])
                     poc3 = poc33[2]
-
                     pocd1 = poc2 - poc1
                     pocd2 = poc3 - poc2
                     pocd1abs = abs(pocd1)
@@ -1606,11 +1587,66 @@ else:
                     pocs2 = 100 / pocs1
                     pocd10 = round(100 - pocs2, 2)
 
-                    if pocd10 == 0:
-                        pocd10 = 1
+                    if pocd10 <= 10:
+                        index_id = 1
+                    elif (pocd10 > 10 and pocd10 <= 20):
+                        index_id = 2
+                    elif (pocd10 > 20 and pocd10 <= 30):
+                        index_id = 3
+                    elif (pocd10 > 30 and pocd10 <= 40):
+                        index_id = 4
+                    elif (pocd10 > 40 and pocd10 <= 50):
+                        index_id = 5
+                    else:
+                        index_id = 0
 
-                    print("[" + time.strftime("%H:%M:%S") + "] " + 'EE Index: ', pocd10)
+                    verbose("Index id", index_id)
 
+                    # Checking if daily index data was calculated for the given date
+                    if data_check["daily_index"].values == "Yes":
+
+                        # Forces dailycalc to save daily index data to database
+                        if args.force_save_daily_index == "Yes":
+
+                            # Writing general daily data to database
+                            SQL(data_base, args.db_user_name, args.db_password).insert_data(
+                                "insert into balance_index (date,ticker,value,index_id) "
+                                "values ('" + str(query_date) +
+                                "','" + str(security) +
+                                "','" + str(pocd10) +
+                                "','" + str(index_id) + "')")
+
+                            print("[" + time.strftime("%H:%M:%S") + "] " + "WRITING DAILY INDEX DATA TO DATABASE")
+
+                        else:
+
+                            print("[" + time.strftime("%H:%M:%S") + "]" + " DAILY_INDEX DATA EXISTS IN DATA BASE FOR -> " + str(security) + " DATE: " + str(query_date))
+
+                            pass
+
+                    else:
+
+                        # Writing daily index to database
+                        print("[" + time.strftime("%H:%M:%S") + "] " + 'EE Index: ', pocd10)
+
+                        SQL(data_base, args.db_user_name, args.db_password).insert_data(
+                            "insert into balance_index (date,ticker,value,index_id) "
+                            "values ('" + str(query_date) +
+                            "','" + str(security) +
+                            "','" + str(pocd10) +
+                            "','" + str(index_id) + "')")
+
+                        print("[" + time.strftime("%H:%M:%S") + "] " + "WRITING DAILY INDEX DATA TO DATABASE")
+
+                        SQL(data_base, args.db_user_name, args.db_password).insert_data(
+                            "update process_monitor set daily_index = 'Yes' where ticker = '" + str(
+                                security) + "' and date = '" + str(query_date) + "'")
+
+                except:
+
+                    print("[" + time.strftime("%H:%M:%S") + "] " + "Not enough data for daily index calculation!")
+
+                    '''
                     print("[" + time.strftime("%H:%M:%S") + "] " + 'Calculating --> Balanced Day')
 
                     # Balanced day
