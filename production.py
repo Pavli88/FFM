@@ -1532,6 +1532,50 @@ else:
                     print("[" + time.strftime("%H:%M:%S") + "] " + "Daily return calculation is not possible")
 
 
+                # Attempted direction
+                try:
+                    atdir = bre + sre + res + rf + tail + ins + inb + pz1 + pz2 + vap
+
+                    if atdir > 0:
+                        atdircode = 1
+                    else:
+                        atdircode = 2
+                    verbose("Attempted Direction",atdircode)
+
+                except:
+                    atdircode = 0
+                    print("[" + time.strftime("%H:%M:%S") + "] " + "Attempted direction code calculation is not possible")
+
+
+                # VAP code
+                try:
+
+                    if vap == 2:
+                        vapcode = 6
+                    elif vap == -2:
+                        vapcode = 7
+                    elif vap == 1:
+                        vapcode = 8
+                    elif vap == -1:
+                        vapcode = 9
+                    else:
+                        vapcode = 10
+                    verbose("Value Area Placement code",vapcode)
+
+                except:
+                    vapcode = 0
+                    print("[" + time.strftime("%H:%M:%S") + "] " + 'Value Area Placement code: ', vapcode)
+
+
+                # Short term trader volume
+                try:
+                    shortvol = sumvol - (rbvol + isvol + ibvol + rsvol)
+                    verbose("Short term trader volume",shortvol)
+
+                except:
+                    shortvol = 0
+                    print("[" + time.strftime("%H:%M:%S") + "] " + 'Short term trader volume calculation is not possible')
+
                 #Writing daily_rel data to database
                 if data_check["daily_rel"].values == "Yes":
 
@@ -1540,7 +1584,7 @@ else:
 
                         # Writing general daily data to database
                         SQL(data_base,args.db_user_name,args.db_password).insert_data(
-                            "insert into daily_rel (ins,inb,pz1,pz2,trday,resbuy,inisell,respsell,inibuy,vap,dret,ticker,date,rbvol,isvol,ibvol,rsvol,bratio,sratio) "
+                            "insert into daily_rel (ins,inb,pz1,pz2,trday,resbuy,inisell,respsell,inibuy,vap,dret,ticker,date,rbvol,isvol,ibvol,rsvol,bratio,sratio,atdir_code,vapcode,shortvol,atdir) "
                             "values ('" + str(ins) +
                             "','" + str(inb) +
                             "','" + str(pz1) +
@@ -1559,7 +1603,11 @@ else:
                             "','" + str(ibvol) +
                             "','" + str(rsvol) +
                             "','" + str(bratio) +
-                            "','" + str(sratio) +"')")
+                            "','" + str(sratio) +
+                            "','" + str(atdircode) +
+                            "','" + str(vapcode) +
+                            "','" + str(shortvol) +
+                            "','" + str(atdir) +"')")
 
                         print("[" + time.strftime("%H:%M:%S") + "] " + "WRITING DAILY_REL DATA TO DATABASE")
 
@@ -1573,7 +1621,7 @@ else:
 
                     # Writing general daily data to database
                     SQL(data_base,args.db_user_name,args.db_password).insert_data(
-                        "insert into daily_rel (ins,inb,pz1,pz2,trday,resbuy,inisell,respsell,inibuy,vap,dret,ticker,date,rbvol,isvol,ibvol,rsvol,bratio,sratio) "
+                        "insert into daily_rel (ins,inb,pz1,pz2,trday,resbuy,inisell,respsell,inibuy,vap,dret,ticker,date,rbvol,isvol,ibvol,rsvol,bratio,sratio,atdir_code,vapcode,shortvol,atdir) "
                         "values ('" + str(ins) +
                         "','" + str(inb) +
                         "','" + str(pz1) +
@@ -1592,7 +1640,11 @@ else:
                         "','" + str(ibvol) +
                         "','" + str(rsvol) +
                         "','" + str(bratio) +
-                        "','" + str(sratio) + "')")
+                        "','" + str(sratio) +
+                        "','" + str(atdircode) +
+                        "','" + str(vapcode) +
+                        "','" + str(shortvol) +
+                        "','" + str(atdir) +"')")
 
                     print("[" + time.strftime("%H:%M:%S") + "] " + "WRITING DAILY_REL DATA TO DATABASE")
 
@@ -1688,44 +1740,6 @@ else:
                     print("[" + time.strftime("%H:%M:%S") + "] " + "Not enough data for daily index calculation!")
 
                     '''
-                    print("[" + time.strftime("%H:%M:%S") + "] " + 'Calculating --> Balanced Day')
-
-                    # Balanced day
-                    if pocd10 < 30:
-                        bald = poc
-                        edge = rowe
-                    else:
-                        bald = 0
-                        edge = 0
-
-                    # Attempted direction
-                    atdir = bre + sre + res + rf + tail + ins + inb + pz1 + pz2 + vap
-
-                    if atdir > 0:
-                        atdircode = 1
-                    else:
-                        atdircode = 2
-                        
-                    print("[" + time.strftime("%H:%M:%S") + "] " + 'Attempted Direction: ', atdircode)
-                    
-                    # VAP code
-                    if vap == 2:
-                        vapcode = 6
-                    elif vap == -2:
-                        vapcode = 7
-                    elif vap == 1:
-                        vapcode = 8
-                    elif vap == -1:
-                        vapcode = 9
-                    else:
-                        vapcode = 10
-                        
-                    print("[" + time.strftime("%H:%M:%S") + "] " + 'Value Area Placement code: ', vapcode)
-                    
-                    shortvol = sumvol - (rbvol + isvol + ibvol + rsvol)
-
-                except:
-                    print("[" + time.strftime("%H:%M:%S") + "] " + "Level 3 data calculation is not possible")
 
                 # Relative Volume by Other timefram trader volume
 
@@ -1761,12 +1775,14 @@ else:
 
             except:
                 print('')
-                print("[" + time.strftime("%H:%M:%S") + "] " + '--------------------------------------------------------> Error')
+                print("[" + time.strftime("%H:%M:%S") + "] " + '*** Error ***')
                 print("[" + time.strftime("%H:%M:%S") + "] " + i + ' Production failed')
-
                 print('----------------------------------------')
+
         print("")
-        print('END OF DAILYCALC')
+        print("--------------------")
+        print('| END OF DAILYCALC |')
+        print("--------------------")
         print("")
 
 
