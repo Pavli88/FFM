@@ -196,6 +196,111 @@ def verbose(text,value):
     else:
         pass
 
+#Unit calculation
+def unit_data(unit_date, ticker, table):
+
+    index_date_range = SQL(data_base, args.db_user_name, args.db_password).select_data(
+        "select*from balance_index where index_id = (select index_id from balance_index where date = " + str(
+            unit_date) + ") order by date desc limit 2")
+
+    date_l = str(index_date_range['date'][0]).replace("-", "")
+    date_m = str(index_date_range['date'][1]).replace("-", "")
+
+    dataframe = SQL(data_base, args.db_user_name, args.db_password).select_data(
+        "select*from daily_gen p1, daily_rel p2 where p1.date = p2.date and p1.date > " + str(
+            date_m) + " and p1.date <= " + str(date_l) + " and p1.ticker = \'" + str(ticker) + "\';")
+
+    unit_open = dataframe["open"][0]
+    unit_min = dataframe["min"].min()
+    unit_max = dataframe["max"].max()
+    unit_close = dataframe["close"][int(len(dataframe["open"]) - 1)]
+    unit_days = len(dataframe['open'])
+    unit_bre = dataframe['bre'].sum() / unit_days
+    unit_sre = dataframe['sre'].sum() / unit_days
+    unit_res = dataframe['res'].sum() / unit_days
+    unit_rf = dataframe['rf'].mean()
+    unit_vol = dataframe['vol'].sum()
+    unit_poc = dataframe['poc'].mean()
+    unit_ins = dataframe['ins'].sum() / unit_days
+    unit_inb = dataframe['inb'].sum() / unit_days
+    unit_atdir_sum = dataframe['atdir'].sum()
+    unit_atdir_mean = dataframe['atdir'].mean()
+    unit_atdir_std = dataframe['atdir'].std()
+    unit_sh_vol = dataframe['shortvol'].sum()
+    unit_rb_vol = dataframe['rbvol'].sum()
+    unit_rs_vol = dataframe['rsvol'].sum()
+    unit_ib_vol = dataframe['ibvol'].sum()
+    unit_is_vol = dataframe['isvol'].sum()
+    unit_shper = unit_sh_vol / unit_vol
+    unit_rbper = unit_rb_vol / unit_vol
+    unit_rsper = unit_rs_vol / unit_vol
+    unit_ibper = unit_ib_vol / unit_vol
+    unit_isper = unit_is_vol / unit_vol
+    unit_index_id = index_date_range['index_id'][0]
+
+    SQL(data_base, args.db_user_name, args.db_password).insert_data(
+        "insert into " + str(
+            table) + " (date,ticker,unit_open,unit_min,unit_max,unit_close,unit_days,unit_bre,unit_sre,unit_res,unit_rf,unit_vol,unit_poc,unit_ins,unit_inb,unit_atdir_sum,unit_atdir_mean,unit_atdir_std,unit_sh_vol,unit_rb_vol,unit_rs_vol,unit_ib_vol,unit_is_vol,unit_shper,unit_rbper,unit_rsper,unit_ibper,unit_isper,index_id) "
+                     "values ('" + str(unit_date) +
+        "','" + str(ticker) +
+        "','" + str(unit_open) +
+        "','" + str(unit_min) +
+        "','" + str(unit_max) +
+        "','" + str(unit_close) +
+        "','" + str(unit_days) +
+        "','" + str(unit_bre) +
+        "','" + str(unit_sre) +
+        "','" + str(unit_res) +
+        "','" + str(unit_rf) +
+        "','" + str(unit_vol) +
+        "','" + str(unit_poc) +
+        "','" + str(unit_ins) +
+        "','" + str(unit_inb) +
+        "','" + str(unit_atdir_sum) +
+        "','" + str(unit_atdir_mean) +
+        "','" + str(unit_atdir_std) +
+        "','" + str(unit_sh_vol) +
+        "','" + str(unit_rb_vol) +
+        "','" + str(unit_rs_vol) +
+        "','" + str(unit_ib_vol) +
+        "','" + str(unit_is_vol) +
+        "','" + str(unit_shper) +
+        "','" + str(unit_rbper) +
+        "','" + str(unit_rsper) +
+        "','" + str(unit_ibper) +
+        "','" + str(unit_isper) +
+        "','" + str(unit_index_id) + "')")
+
+    print(dataframe)
+    print("unit open", unit_open)
+    print("unit min", unit_min)
+    print("unit max", unit_max)
+    print("unit close", unit_close)
+    print("unit days", unit_days)
+    print("unit bre", unit_bre)
+    print("unit sre", unit_sre)
+    print("unit res", unit_res)
+    print("unit rf", unit_rf)
+    print("unit vol", unit_vol)
+    print("unit poc", unit_poc)
+    print("unit ins", unit_ins)
+    print("unit inb", unit_inb)
+    print("unit atdir sum", unit_atdir_sum)
+    print("unit atdir mean", unit_atdir_mean)
+    print("unit atdir std", unit_atdir_std)
+    print("unit sh vol", unit_sh_vol)
+    print("unit rb vol", unit_rb_vol)
+    print("unit rs vol", unit_rs_vol)
+    print("unit ib vol", unit_ib_vol)
+    print("unit is vol", unit_is_vol)
+    print("unit shper", unit_shper)
+    print("unit rbper", unit_rbper)
+    print("unit rsper", unit_rsper)
+    print("unit ibper", unit_ibper)
+    print("unit isper", unit_isper)
+    print("unit index id", unit_index_id)
+
+
 #ARGUMENTS
 
 parser = argparse.ArgumentParser()
@@ -207,7 +312,7 @@ parser.add_argument("--ticker", help="Defining the list of ticker or single tick
 # Subprocess switches
 parser.add_argument("--download", help="Download latest intraday data. Switch: Yes")
 parser.add_argument("--dailycalc", help="Daily data production. Switch: Yes")
-parser.add_argument("--unitcalc", help="Calculates unit and market level data. Switch: Yes")
+parser.add_argument("--unitcalc", help="Calculates unit level data. Switch: Yes")
 parser.add_argument("--confcalc", help="Calculates confidence data. Switch: Yes")
 parser.add_argument("--patterncalc", help="Calculates pattern data. Switch: Yes")
 parser.add_argument("--updatepattern", help="Updates latest pattern data. Switch: Yes")
@@ -215,8 +320,6 @@ parser.add_argument("--chartmail", help="Calculates chart mails. Switch: Yes")
 parser.add_argument("--stpattern", help="Checks securities with strong pattern. Switch: Yes")
 parser.add_argument("--tradereturn", help="Calculates trade return on positions. Switch: Yes")
 parser.add_argument("--portret", help="Calculates portfolio returns. Switch: Yes")
-parser.add_argument("--backup", help="Creates database backup file. Switch: Yes")
-parser.add_argument("--datechecker", help="Checks latest day on daily data. Switch: Yes")
 
 # Database related switches
 parser.add_argument("--db_user_name", help="User name for database login. Switch: username")
@@ -1784,5 +1887,11 @@ else:
         print('| END OF DAILYCALC |')
         print("--------------------")
         print("")
+
+    # UNIT DATA CALCULATION
+    if args.unitcalc == "Yes":
+
+        unit_data(unit_date="20180927", ticker="FB", table="unit")
+
 
 
