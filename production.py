@@ -9,7 +9,7 @@ import numpy as np
 import sys
 import requests
 
-'Classes'
+# ***CLASSES***
 
 
 class SQL:
@@ -125,11 +125,7 @@ class OnlineData:
         return self.query[:-1]+";"
 
 
-'FUNCTIONS'
-
-
-'Value area calculator'
-
+# ***FUNCTIONS***
 
 def value_area_calc(rawdata):
 
@@ -197,9 +193,6 @@ def value_area_calc(rawdata):
     return val['PRICE'], vah['PRICE'], table['PRICE'], table['VOLUME'], locator
 
 
-'Verbosity'
-
-
 def verbose(text, value):
 
     if args.verbosity == "Yes":
@@ -209,9 +202,6 @@ def verbose(text, value):
 
     else:
         pass
-
-
-'Unit calculation'
 
 
 def unit_data(unit_date, ticker, table):
@@ -236,6 +226,7 @@ def unit_data(unit_date, ticker, table):
     if len(index_date_range['index_id']) < 2:
 
         print("There is not enough record to calculate unit data.")
+        print("")
         pass
 
     else:
@@ -358,10 +349,10 @@ def unit_data(unit_date, ticker, table):
                 print("Exception: " + str(e))
 
 
-'ARGUMENTS'
-
+# ***ARGUMENTS***
 
 parser = argparse.ArgumentParser()
+
 
 # General data points
 
@@ -382,15 +373,18 @@ parser.add_argument("--stpattern", help="Checks securities with strong pattern. 
 parser.add_argument("--tradereturn", help="Calculates trade return on positions. Switch: Yes")
 parser.add_argument("--portret", help="Calculates portfolio returns. Switch: Yes")
 
+
 # Database related switches
 
 parser.add_argument("--db_user_name", help="User name for database login. Switch: username")
 parser.add_argument("--db_password", help="Password for database login. Switch: password")
 parser.add_argument("--env", help="Environment switch. Default:prod; Switches: test; dev ")
 
+
 # Print options
 
 parser.add_argument("--verbosity", help="Print all relevant information. Default: empty Switch: Yes")
+
 
 # Force run and save switches
 
@@ -402,7 +396,7 @@ parser.add_argument("--forcerun", help="Forces script to run if market is open. 
 args = parser.parse_args()
 
 
-'GLOBAL VARIABLES'
+# ***GLOBAL VARIABLES***
 
 
 # Date variables
@@ -452,14 +446,14 @@ else:
         else:
             portdate = today
 
+
 # SQL query date
 
 query_date0 = str(portdate)
 query_date = query_date0[0:4]+query_date0[5:7]+query_date0[8:10]
 
 
-'Environment definition'
-
+# Environment definiton
 
 if args.env == "test":
 
@@ -489,22 +483,24 @@ print("------------------")
 print("| INITIALIZATION |")
 print("------------------")
 
+
 # Defining tickers to run production on
 
 if args.ticker == "ALL":
 
     ticker_list = SQL(data_base, args.db_user_name, args.db_password).select_data("select ticker from eq_info")
-    file2 = list(ticker_list['ticker'])
+    securities = list(ticker_list['ticker'])
 
     print("[" + time.strftime("%H:%M:%S") + "]" + "DATA PRODUCTION FOR ALL EQUITY TICKER")
 
 else:
 
-    file2 = [str(args.ticker)]
+    securities = [str(args.ticker)]
 
-    print("[" + time.strftime("%H:%M:%S") + "]" + "DATA PRODUCTION FOR "+str(file2))
+    print("[" + time.strftime("%H:%M:%S") + "]" + "DATA PRODUCTION FOR "+str(securities))
 
 print("[" + time.strftime("%H:%M:%S") + "]" + "ANALYZING IF PRODUCTION CAN BE KICKED OFF...")
+
 
 # Checks if the run date is weekend. If yes it shuts down data production
 
@@ -514,6 +510,7 @@ if args.rundate != None:
 
         print("This is a weekend production is killed.")
         sys.exit()
+
 
 # Switch to force run data production while market is open
 
@@ -546,7 +543,7 @@ else:
 
         print("[" + time.strftime("%H:%M:%S") + "]" + "DOWNLOADING INTRA DAY QUOTES FROM INTERNET")
 
-        for sec in file2:
+        for sec in securities:
 
             # Checking if data was already downloaded
 
@@ -600,17 +597,24 @@ else:
         print("---------------------")
 
         # Situation Table
-        sit1 = pd.Series(
-            [156, 136, 146, 158, 138, 148, 1510, 1310, 1410, 157, 137, 147, 159, 139, 149, 257, 237, 247, 259, 239, 249,
-             2510,2310, 2410, 256, 236, 246, 258, 238, 248]
-        )
 
-        sit2 = pd.Series(
-            ['Very-Str', 'Slowing', 'Str-Cont', 'Mod-Str', 'Slw-Blncing', 'Mod-Str-Blncing', 'Blncing','Blncing-Wkning',
-             'Blncing', 'Uncl', 'Wk', 'Wk-Blncing', 'Wkning', 'Mod-wk', 'Wkning-Blncing', 'Very-Wk', 'Slowing','Wk-Cont',
-             'Mod-Wk', 'Slo-Blncing', 'Mod-Wk-Blncing', 'Blncing', 'Blncing-Strning', 'Blncing', 'Uncl', 'Str','Str-Blncing',
-             'Strning', 'Mod-Str', 'Strning']
-        )
+        sit1 = pd.Series([156, 136, 146, 158,
+                          138, 148, 1510, 1310,
+                          1410, 157, 137, 147,
+                          159, 139, 149, 257,
+                          237, 247, 259, 239,
+                          249, 2510, 2310, 2410,
+                          256, 236, 246, 258,
+                          238, 248])
+
+        sit2 = pd.Series(['Very-Str', 'Slowing', 'Str-Cont', 'Mod-Str',
+                          'Slw-Blncing', 'Mod-Str-Blncing', 'Blncing', 'Blncing-Wkning',
+                          'Blncing', 'Uncl', 'Wk', 'Wk-Blncing',
+                          'Wkning', 'Mod-wk', 'Wkning-Blncing', 'Very-Wk',
+                          'Slowing', 'Wk-Cont', 'Mod-Wk', 'Slo-Blncing',
+                          'Mod-Wk-Blncing', 'Blncing', 'Blncing-Strning', 'Blncing',
+                          'Uncl', 'Str', 'Str-Blncing', 'Strning',
+                          'Mod-Str', 'Strning'])
 
         sit = pd.DataFrame({'A': sit1,
                             'B': sit2,
@@ -620,21 +624,24 @@ else:
         # BEGINNING OF OPERATIONS
         # ---------------------------------------
 
-        for security in file2:
+        for security in securities:
 
             # ---------------------------------------
             # START OF GENERAL DATA POINT CALCULATIONS
             # ---------------------------------------
 
-            '''
+            """
             DAILYCALC FIRTS CALCULATES GENERAL DATAPOINTS AND IT SAVES TO THE DATABASE
-            '''
+            """
 
             try:
 
                 # Checking if relative data was already calculated
 
-                data_check = SQL(data_base, args.db_user_name, args.db_password).select_data("select*from process_monitor where ticker = '" + str(security) + "' and date = '" + str(query_date) + "'")
+                data_check = SQL(data_base,
+                                 args.db_user_name,
+                                 args.db_password).select_data("select*from process_monitor where ticker = '" +
+                                                               str(security) + "' and date = '" + str(query_date) + "'")
 
                 print("")
                 print('***' + str(security) + '***')
@@ -642,15 +649,24 @@ else:
 
                 # Fetching intraday quotes from database
 
-                '''
+                """
                 DAILY CALC CAN FETCH DATA FOR A SPECIFIC DATE AND IN DEFAULT MODE FOR T-1 DATE.
-                '''
+                """
 
                 # Fetching for specific date
 
                 if args.rundate != None:
 
-                    import_quotes = SQL(data_base, args.db_user_name, args.db_password).select_data("select market_close,market_high,market_low,market_open,market_volume from intraday_quotes where ticker = '" + str(security) + "' and date = '" + str(args.rundate) + "'")
+                    import_quotes = SQL(data_base,
+                                        args.db_user_name,
+                                        args.db_password).select_data("""select market_close,market_high, \
+                                                                         market_low,market_open,market_volume \
+                                                                         from intraday_quotes \
+                                                                         where ticker = '{sec}' \
+                                                                         and date = '{date}'""".format(sec=security,
+                                                                                                       date=args.rundate
+                                                                                                       ))
+
                     import_quotes.columns = [0, 1, 2, 3, 4]
 
                     print("[" + time.strftime("%H:%M:%S") + "] " +
@@ -660,10 +676,20 @@ else:
 
                 else:
 
-                    import_quotes = SQL(data_base, args.db_user_name, args.db_password).select_data("select market_close,market_high,market_low,market_open,market_volume from intraday_quotes where ticker = '" + str(security) + "' and date = '" + str(query_date) + "'")
+                    import_quotes = SQL(data_base,
+                                        args.db_user_name,
+                                        args.db_password).select_data("""select market_close,market_high, \
+                                                                         market_low,market_open,market_volume \
+                                                                         from intraday_quotes \
+                                                                         where ticker = '{sec}' \
+                                                                         and date = '{date}'""".format(sec=security,
+                                                                                                       date=query_date
+                                                                                                       ))
+
                     import_quotes.columns = [0, 1, 2, 3, 4]
-                    print("[" + time.strftime("%H:%M:%S") + "] " + 'Fetching quotes from databas -> Date: ' + str(
-                        query_date))
+
+                    print("[" + time.strftime("%H:%M:%S") + "] " +
+                          'Fetching quotes from databas -> Date: ' + str(query_date))
 
                 s = 2
 
@@ -982,17 +1008,24 @@ else:
                     res = 1
                 verbose("Range extension succes", res)
 
-                maxar = pd.Series(
-                    [rmax1, rmax2, rmax3, rmax4, rmax5, rmax6, rmax7, rmax8, rmax9, rmax10, rmax11, rmax12, rmax13])
-                minar = pd.Series(
-                    [rmin1, rmin2, rmin3, rmin4, rmin5, rmin6, rmin7, rmin8, rmin9, rmin10, rmin11, rmin12, rmin13])
+                maxar = pd.Series([rmax1, rmax2, rmax3, rmax4,
+                                   rmax5, rmax6, rmax7, rmax8,
+                                   rmax9, rmax10, rmax11, rmax12, rmax13])
+
+                minar = pd.Series([rmin1, rmin2, rmin3, rmin4,
+                                   rmin5, rmin6, rmin7, rmin8,
+                                   rmin9, rmin10, rmin11, rmin12, rmin13])
+
                 ardiff = (maxar - minar) * tiz
-                allmaxar = pd.Series(
-                    [allmax, allmax, allmax, allmax, allmax, allmax, allmax, allmax, allmax, allmax, allmax, allmax,
-                     allmax])
-                allminar = pd.Series(
-                    [allmin, allmin, allmin, allmin, allmin, allmin, allmin, allmin, allmin, allmin, allmin, allmin,
-                     allmin, ])
+
+                allmaxar = pd.Series([allmax, allmax, allmax, allmax,
+                                      allmax, allmax, allmax, allmax,
+                                      allmax, allmax, allmax, allmax, allmax])
+
+                allminar = pd.Series([allmin, allmin, allmin, allmin,
+                                      allmin, allmin, allmin, allmin,
+                                      allmin, allmin, allmin, allmin, allmin, ])
+
                 mindiff = (minar - allmin) * tiz
                 maxdiff = (allmaxar - maxar) * tiz
                 totdiff = ardiff + mindiff + maxdiff
@@ -1000,6 +1033,7 @@ else:
                 # Rotation factor
 
                 def rfactormax(rmaxi, rmaxj):
+
                     if rmaxi > rmaxj:
                         return 1
                     elif rmaxi == rmaxj:
@@ -1863,10 +1897,12 @@ else:
                     print("[" + time.strftime("%H:%M:%S") + "] " + "DAILY INDEX CALCULATION")
 
                     # Importing the last three days' poc data into a dataframe
+
                     filename = SQL(data_base, args.db_user_name, args.db_password).select_data("select date,poc from (select * from dev.daily_gen where ticker = '" + str(security) + "' and date <= '" + str(query_date) + "' order by date desc limit 3) sub order by date asc")
                     verbose("Imported latest tree days' POC data", filename)
 
                     # Balance index value calculation
+
                     poc11 = np.asanyarray(filename['poc'])
                     poc1 = poc11[0]
                     poc22 = np.asanyarray(filename['poc'])
@@ -1900,12 +1936,15 @@ else:
                     verbose("Index id", index_id)
 
                     # Checking if daily index data was calculated for the given date
+
                     if data_check["daily_index"].values == "Yes":
 
                         # Forces dailycalc to save daily index data to database
+
                         if args.force_save_daily_index == "Yes":
 
                             # Writing general daily data to database
+
                             SQL(data_base, args.db_user_name, args.db_password).insert_data(
                                 "insert into balance_index (date,ticker,value,index_id) "
                                 "values ('" + str(query_date) +
@@ -1917,13 +1956,16 @@ else:
 
                         else:
 
-                            print("[" + time.strftime("%H:%M:%S") + "]" + " DAILY_INDEX DATA EXISTS IN DATA BASE FOR -> " + str(security) + " DATE: " + str(query_date))
+                            print("[" + time.strftime("%H:%M:%S") + "]" +
+                                  " DAILY_INDEX DATA EXISTS IN DATA BASE FOR -> " +
+                                  str(security) + " DATE: " + str(query_date))
 
                             pass
 
                     else:
 
                         # Writing daily index to database
+
                         print("[" + time.strftime("%H:%M:%S") + "] " + 'EE Index: ', pocd10)
 
                         SQL(data_base, args.db_user_name, args.db_password).insert_data(
@@ -1980,7 +2022,7 @@ else:
             except:
                 print('')
                 print("[" + time.strftime("%H:%M:%S") + "] " + '*** Error ***')
-                print("[" + time.strftime("%H:%M:%S") + "] " + i + ' Production failed')
+                print("[" + time.strftime("%H:%M:%S") + "] " + security + ' Production failed')
                 print('----------------------------------------')
 
         print("")
@@ -1993,7 +2035,9 @@ else:
 
     if args.unitcalc == "Yes":
 
-        unit_data(unit_date=str(portdate).replace(',', ''), ticker="FB", table="unit")
+        for security in securities:
+
+            unit_data(unit_date=str(portdate).replace(',', ''), ticker=security, table="unit")
 
 
 
